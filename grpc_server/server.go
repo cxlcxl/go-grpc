@@ -20,7 +20,7 @@ func main() {
 		return handler(ctx, req)
 	}
 	grpcService := grpc.NewServer(grpc.UnaryInterceptor(authInterceptor))
-	services.RegisterSearchServiceServer(grpcService, new(services.SearchService))
+	services.RegisterSearchServiceServer(grpcService, new(services.UserService))
 	n, _ := net.Listen("tcp", ":50081")
 	err := grpcService.Serve(n)
 	log.Println(err)

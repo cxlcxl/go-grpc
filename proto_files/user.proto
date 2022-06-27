@@ -1,6 +1,8 @@
 syntax = "proto3";
 // import 是从 protoc 命令执行所在路径开始
 import "proto_files/role.proto";
+// 使用任意类型 any
+import "google/protobuf/any.proto";
 package services;
 // 以当前 proto 文件路径开始
 option go_package="../services";
@@ -22,10 +24,17 @@ message UserResponse {
     Football = 2;
   };
   Hobby hobby = 5;
-
   repeated Role role = 6;
+  google.protobuf.Any AllTypes = 7;
 }
 
+message UserRequest {
+  string username = 1;
+}
+message UsersResponse {
+  repeated UserResponse users = 1;
+}
 service SearchService {
   rpc SearchUser(SearchParam) returns (UserResponse);
+  rpc GetUserSteam(stream UserRequest) returns (UsersResponse);
 }

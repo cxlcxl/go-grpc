@@ -7,6 +7,7 @@ import (
 	"grpc_s/grpc_client/auth"
 	"grpc_s/services"
 	"log"
+	"strconv"
 )
 
 func main() {
@@ -19,9 +20,14 @@ func main() {
 	defer c.Close()
 
 	cs := services.NewSearchServiceClient(c)
-	rs, err := cs.SearchUser(context.Background(), &services.SearchParam{Username: "cxl98655adfads"})
-	if err != nil {
-		log.Fatal("有错误", err.Error())
+	//rs, err := cs.SearchUser(context.Background(), &services.SearchParam{Username: "cxl98655adfads"})
+	//if err != nil {
+	//	log.Fatal("有错误", err.Error())
+	//}
+	steam, _ := cs.GetUserSteam(context.Background())
+	for i := 0; i < 10; i++ {
+		_ = steam.Send(&services.UserRequest{Username: "user_" + strconv.Itoa(i+1)})
 	}
-	log.Println(rs.String())
+	recv, err := steam.CloseAndRecv()
+	log.Println(recv.GetUsers())
 }
