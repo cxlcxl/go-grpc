@@ -1,6 +1,8 @@
 syntax = "proto3";
-
+// import 是从 protoc 命令执行所在路径开始
+import "proto_files/role.proto";
 package services;
+// 以当前 proto 文件路径开始
 option go_package="../services";
 
 message SearchParam {
@@ -20,6 +22,8 @@ message UserResponse {
     Football = 2;
   };
   Hobby hobby = 5;
+
+  repeated Role role = 6;
 }
 
 service SearchService {

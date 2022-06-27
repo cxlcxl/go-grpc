@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package services;
+option go_package="../services";
+
+message Role {
+  string RoleName = 1;
+  repeated string Permissions = 2;
+}
