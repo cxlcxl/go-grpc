@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SearchServiceClient interface {
 	SearchUser(ctx context.Context, in *SearchParam, opts ...grpc.CallOption) (*UserResponse, error)
+	GetUserSteam(ctx context.Context, opts ...grpc.CallOption) (SearchService_GetUserSteamClient, error)
 }
 
 type searchServiceClient struct {
@@ -42,11 +43,46 @@ func (c *searchServiceClient) SearchUser(ctx context.Context, in *SearchParam, o
 	return out, nil
 }
 
+func (c *searchServiceClient) GetUserSteam(ctx context.Context, opts ...grpc.CallOption) (SearchService_GetUserSteamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SearchService_ServiceDesc.Streams[0], "/services.SearchService/GetUserSteam", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &searchServiceGetUserSteamClient{stream}
+	return x, nil
+}
+
+type SearchService_GetUserSteamClient interface {
+	Send(*UserRequest) error
+	CloseAndRecv() (*UsersResponse, error)
+	grpc.ClientStream
+}
+
+type searchServiceGetUserSteamClient struct {
+	grpc.ClientStream
+}
+
+func (x *searchServiceGetUserSteamClient) Send(m *UserRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *searchServiceGetUserSteamClient) CloseAndRecv() (*UsersResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(UsersResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SearchServiceServer is the server API for SearchService service.
 // All implementations must embed UnimplementedSearchServiceServer
 // for forward compatibility
 type SearchServiceServer interface {
 	SearchUser(context.Context, *SearchParam) (*UserResponse, error)
+	GetUserSteam(SearchService_GetUserSteamServer) error
 	mustEmbedUnimplementedSearchServiceServer()
 }
 
@@ -56,6 +92,9 @@ type UnimplementedSearchServiceServer struct {
 
 func (UnimplementedSearchServiceServer) SearchUser(context.Context, *SearchParam) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchUser not implemented")
+}
+func (UnimplementedSearchServiceServer) GetUserSteam(SearchService_GetUserSteamServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetUserSteam not implemented")
 }
 func (UnimplementedSearchServiceServer) mustEmbedUnimplementedSearchServiceServer() {}
 
@@ -88,6 +127,32 @@ func _SearchService_SearchUser_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SearchService_GetUserSteam_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(SearchServiceServer).GetUserSteam(&searchServiceGetUserSteamServer{stream})
+}
+
+type SearchService_GetUserSteamServer interface {
+	SendAndClose(*UsersResponse) error
+	Recv() (*UserRequest, error)
+	grpc.ServerStream
+}
+
+type searchServiceGetUserSteamServer struct {
+	grpc.ServerStream
+}
+
+func (x *searchServiceGetUserSteamServer) SendAndClose(m *UsersResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *searchServiceGetUserSteamServer) Recv() (*UserRequest, error) {
+	m := new(UserRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SearchService_ServiceDesc is the grpc.ServiceDesc for SearchService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +165,12 @@ var SearchService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SearchService_SearchUser_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetUserSteam",
+			Handler:       _SearchService_GetUserSteam_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "proto_files/user.proto",
 }
