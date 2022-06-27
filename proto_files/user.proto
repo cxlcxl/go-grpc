@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package services;
+option go_package="../services";
+
+message SearchParam {
+  string username = 1;
+  string email = 2;
+  repeated int64 role_id = 3;
+}
+
+message UserResponse {
+  string username = 1;
+  string email = 2;
+  optional int64 age = 3;
+  repeated int64 role_id = 4;
+  enum Hobby {
+    Game = 0;
+    Basketball = 1;
+    Football = 2;
+  };
+  Hobby hobby = 5;
+}
+
+service SearchService {
+  rpc SearchUser(SearchParam) returns (UserResponse);
+}
